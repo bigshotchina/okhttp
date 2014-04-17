@@ -17,7 +17,6 @@ package com.squareup.okhttp;
 
 import com.squareup.okhttp.internal.Util;
 import com.squareup.okhttp.internal.http.HttpDate;
-import com.squareup.okhttp.internal.http.OkHeaders;
 import com.squareup.okhttp.internal.http.StatusLine;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
@@ -50,6 +49,8 @@ public final class Response {
   private final Headers headers;
   private final Body body;
   private final Response redirectedBy;
+  private final ResponseSource responseSource;
+  private final Protocol protocol;
 
   private volatile ParsedHeaders parsedHeaders; // Lazily initialized.
   private volatile CacheControl cacheControl; // Lazily initialized.
@@ -61,6 +62,8 @@ public final class Response {
     this.headers = builder.headers.build();
     this.body = builder.body;
     this.redirectedBy = builder.redirectedBy;
+    this.responseSource = builder.responseSource;
+    this.protocol = builder.protocol;
   }
 
   /**
@@ -136,6 +139,16 @@ public final class Response {
    */
   public Response redirectedBy() {
     return redirectedBy;
+  }
+
+  /** Source from which the response was obtained. */
+  public ResponseSource responseSource() {
+    return responseSource;
+  }
+
+  /** The protocol through which the request/response was executed. */
+  public Protocol protocol() {
+    return protocol;
   }
 
   // TODO: move out of public API
@@ -362,6 +375,8 @@ public final class Response {
     private Headers.Builder headers;
     private Body body;
     private Response redirectedBy;
+    private ResponseSource responseSource = ResponseSource.NETWORK;
+    private Protocol protocol = Protocol.HTTP_11;
 
     public Builder() {
       headers = new Headers.Builder();
@@ -374,6 +389,8 @@ public final class Response {
       this.headers = response.headers.newBuilder();
       this.body = response.body;
       this.redirectedBy = response.redirectedBy;
+      this.responseSource = response.responseSource;
+      this.protocol = response.protocol;
     }
 
     public Builder request(Request request) {
@@ -434,13 +451,20 @@ public final class Response {
       return this;
     }
 
-    // TODO: move out of public API
-    public Builder setResponseSource(ResponseSource responseSource) {
-      return header(OkHeaders.RESPONSE_SOURCE, responseSource + " " + statusLine.code());
-    }
-
     public Builder redirectedBy(Response redirectedBy) {
       this.redirectedBy = redirectedBy;
+      return this;
+    }
+
+    public Builder responseSource(ResponseSource responseSource) {
+      if (responseSource == null) throw new IllegalArgumentException("responseSource == null");
+      this.responseSource = responseSource;
+      return this;
+    }
+
+    public Builder protocol(Protocol protocol) {
+      if (protocol == null) throw new IllegalArgumentException("protocol == null");
+      this.protocol = protocol;
       return this;
     }
 

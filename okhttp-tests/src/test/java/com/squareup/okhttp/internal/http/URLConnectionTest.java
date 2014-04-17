@@ -80,7 +80,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.squareup.okhttp.internal.Util.UTF_8;
-import static com.squareup.okhttp.internal.http.OkHeaders.SELECTED_PROTOCOL;
+import static com.squareup.okhttp.internal.http.HttpURLConnectionImpl.SELECTED_PROTOCOL;
 import static com.squareup.okhttp.internal.http.StatusLine.HTTP_TEMP_REDIRECT;
 import static com.squareup.okhttp.mockwebserver.SocketPolicy.DISCONNECT_AT_END;
 import static com.squareup.okhttp.mockwebserver.SocketPolicy.DISCONNECT_AT_START;
@@ -2662,7 +2662,7 @@ public final class URLConnectionTest {
     assertTrue(call, call.contains("url=" + server.getUrl("/private")));
     assertTrue(call, call.contains("challenges=[Basic realm=\"protected area\"]"));
   }
-  
+
   @Test public void customTokenAuthenticator() throws Exception {
     MockResponse pleaseAuthenticate = new MockResponse().setResponseCode(401)
             .addHeader("WWW-Authenticate: Bearer realm=\"oauthed\"")

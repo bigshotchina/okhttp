@@ -22,7 +22,7 @@ import java.util.List;
 import okio.ByteString;
 
 /**
- * Contains protocols that OkHttp supports
+ * Contains protocols that OkHttp supports via
  * <a href="http://tools.ietf.org/html/draft-agl-tls-nextprotoneg-04">NPN</a> or
  * <a href="http://tools.ietf.org/html/draft-ietf-tls-applayerprotoneg">ALPN</a> selection.
  *

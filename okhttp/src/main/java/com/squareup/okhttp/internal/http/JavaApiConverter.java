@@ -73,7 +73,7 @@ public final class JavaApiConverter {
     okResponseBuilder.headers(okHeaders);
 
     // Meta data: Defaulted
-    okResponseBuilder.setResponseSource(ResponseSource.NETWORK);
+    okResponseBuilder.responseSource(ResponseSource.NETWORK);
 
     // Response body
     Response.Body okBody = createOkBody(okHeaders, urlConnection.getInputStream());
@@ -120,7 +120,7 @@ public final class JavaApiConverter {
     okResponseBuilder.headers(okHeaders);
 
     // Meta data: Defaulted
-    okResponseBuilder.setResponseSource(ResponseSource.CACHE);
+    okResponseBuilder.responseSource(ResponseSource.CACHE);
 
     // Response body
     Response.Body okBody = createOkBody(okHeaders, javaResponse.getBody());

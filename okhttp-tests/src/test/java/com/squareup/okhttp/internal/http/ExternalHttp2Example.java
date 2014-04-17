@@ -26,7 +26,7 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSession;
 
-import static com.squareup.okhttp.internal.http.OkHeaders.SELECTED_PROTOCOL;
+import static com.squareup.okhttp.internal.http.HttpURLConnectionImpl.SELECTED_PROTOCOL;
 
 public final class ExternalHttp2Example {
   public static void main(String[] args) throws Exception {

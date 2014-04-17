@@ -1274,7 +1274,7 @@ public final class ResponseCacheTest {
     connection.addRequestProperty("Cache-Control", "only-if-cached");
     assertEquals("A", readAscii(connection));
 
-    String source = connection.getHeaderField(OkHeaders.RESPONSE_SOURCE);
+    String source = connection.getHeaderField(HttpURLConnectionImpl.RESPONSE_SOURCE);
     assertEquals(ResponseSource.CACHE + " 200", source);
   }
 
@@ -1291,7 +1291,7 @@ public final class ResponseCacheTest {
     HttpURLConnection connection = openConnection(server.getUrl("/"));
     assertEquals("B", readAscii(connection));
 
-    String source = connection.getHeaderField(OkHeaders.RESPONSE_SOURCE);
+    String source = connection.getHeaderField(HttpURLConnectionImpl.RESPONSE_SOURCE);
     assertEquals(ResponseSource.CONDITIONAL_CACHE + " 200", source);
   }
 
@@ -1306,7 +1306,7 @@ public final class ResponseCacheTest {
     HttpURLConnection connection = openConnection(server.getUrl("/"));
     assertEquals("A", readAscii(connection));
 
-    String source = connection.getHeaderField(OkHeaders.RESPONSE_SOURCE);
+    String source = connection.getHeaderField(HttpURLConnectionImpl.RESPONSE_SOURCE);
     assertEquals(ResponseSource.CONDITIONAL_CACHE + " 304", source);
   }
 
@@ -1317,7 +1317,7 @@ public final class ResponseCacheTest {
     URLConnection connection = openConnection(server.getUrl("/"));
     assertEquals("A", readAscii(connection));
 
-    String source = connection.getHeaderField(OkHeaders.RESPONSE_SOURCE);
+    String source = connection.getHeaderField(HttpURLConnectionImpl.RESPONSE_SOURCE);
     assertEquals(ResponseSource.NETWORK + " 200", source);
   }
 
@@ -1466,7 +1466,7 @@ public final class ResponseCacheTest {
     assertEquals(504, connection.getResponseCode());
     assertEquals(-1, connection.getErrorStream().read());
     assertEquals(ResponseSource.NONE + " 504",
-        connection.getHeaderField(OkHeaders.RESPONSE_SOURCE));
+        connection.getHeaderField(HttpURLConnectionImpl.RESPONSE_SOURCE));
   }
 
   enum TransferKind {

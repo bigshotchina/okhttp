@@ -179,11 +179,11 @@ public class HttpEngine {
       validatingResponse = cacheStrategy.response;
     }
 
-    if (cacheResponse != null && !responseSource.usesCache()) {
+    if (cacheResponse != null && !responseUsesCache(responseSource)) {
       closeQuietly(cacheResponse.body()); // We don't need this cached response. Close it.
     }
 
-    if (responseSource.requiresConnection()) {
+    if (responseRequiresConnection(responseSource)) {
       // Open a connection unless we inherited one from a redirect.
       if (connection == null) {
         connect();
@@ -213,6 +213,16 @@ public class HttpEngine {
         initContentStream(validatingResponse.body().source());
       }
     }
+  }
+
+  private boolean responseRequiresConnection(ResponseSource responseSource) {
+    return responseSource == ResponseSource.CONDITIONAL_CACHE
+        || responseSource == ResponseSource.NETWORK;
+  }
+
+  private boolean responseUsesCache(ResponseSource responseSource) {
+    return responseSource == ResponseSource.CACHE
+        || responseSource == ResponseSource.CONDITIONAL_CACHE;
   }
 
   private Response cacheableResponse() {
@@ -287,10 +297,6 @@ public class HttpEngine {
 
   public final boolean hasResponse() {
     return response != null;
-  }
-
-  public final ResponseSource responseSource() {
-    return responseSource;
   }
 
   public final Request getRequest() {
@@ -564,7 +570,7 @@ public class HttpEngine {
   public final void readResponse() throws IOException {
     if (response != null) return;
     if (responseSource == null) throw new IllegalStateException("call sendRequest() first!");
-    if (!responseSource.requiresConnection()) return;
+    if (!responseRequiresConnection(responseSource)) return;
 
     // Flush the request body if there's data outstanding.
     if (bufferedRequestBody != null && bufferedRequestBody.buffer().size() > 0) {
@@ -601,7 +607,7 @@ public class HttpEngine {
         .handshake(connection.getHandshake())
         .header(OkHeaders.SENT_MILLIS, Long.toString(sentRequestMillis))
         .header(OkHeaders.RECEIVED_MILLIS, Long.toString(System.currentTimeMillis()))
-        .setResponseSource(responseSource)
+        .responseSource(responseSource)
         .build();
     connection.setHttpMinorVersion(response.httpMinorVersion());
     receiveHeaders(response.headers());
@@ -642,30 +648,33 @@ public class HttpEngine {
    * Combines cached headers with a network headers as defined by RFC 2616,
    * 13.5.3.
    */
-  private static Response combine(Response cached, Response network) throws IOException {
+  private static Response combine(Response network, Response cached) throws IOException {
     Headers.Builder result = new Headers.Builder();
-
-    Headers cachedHeaders = cached.headers();
-    for (int i = 0; i < cachedHeaders.size(); i++) {
-      String fieldName = cachedHeaders.name(i);
-      String value = cachedHeaders.value(i);
-      if ("Warning".equals(fieldName) && value.startsWith("1")) {
-        continue; // drop 100-level freshness warnings
-      }
-      if (!isEndToEnd(fieldName) || network.header(fieldName) == null) {
-        result.add(fieldName, value);
-      }
-    }
 
     Headers networkHeaders = network.headers();
     for (int i = 0; i < networkHeaders.size(); i++) {
       String fieldName = networkHeaders.name(i);
-      if (isEndToEnd(fieldName)) {
-        result.add(fieldName, networkHeaders.value(i));
+      String value = networkHeaders.value(i);
+      if ("Warning".equals(fieldName) && value.startsWith("1")) {
+        continue; // drop 100-level freshness warnings
+      }
+      if (!isEndToEnd(fieldName) || cached.header(fieldName) == null) {
+        result.add(fieldName, value);
       }
     }
 
-    return cached.newBuilder().headers(result.build()).build();
+    Headers cachedHeaders = cached.headers();
+    for (int i = 0; i < cachedHeaders.size(); i++) {
+      String fieldName = cachedHeaders.name(i);
+      if (isEndToEnd(fieldName)) {
+        result.add(fieldName, cachedHeaders.value(i));
+      }
+    }
+
+    return network.newBuilder()
+        .responseSource(cached.responseSource())
+        .headers(result.build())
+        .build();
   }
 
   /**
